@@ -1,0 +1,6 @@
+apiVersion: fission.com/v1
+kind: Function 
+metadata:
+  name: functionone
+spec:
+  message: nginx
