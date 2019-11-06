@@ -40,8 +40,8 @@ func main() {
 
 	fissionclient, err := fclientset.NewForConfig(cfg)
 
-	kubeInformerFactory := kubeinformers.NewSharedInformerFactory(kubeclient, time.Second*10)
-	fissionInformerFactory := fissioninformer.NewSharedInformerFactory(fissionclient, time.Second*10)
+	kubeInformerFactory := kubeinformers.NewSharedInformerFactory(kubeclient, time.Second*30)
+	fissionInformerFactory := fissioninformer.NewSharedInformerFactory(fissionclient, time.Second*30)
 
 	controller := NewController(kubeclient, fissionclient, kubeInformerFactory.Apps().V1().Deployments(), fissionInformerFactory.Fission().V1().Functions())
 
