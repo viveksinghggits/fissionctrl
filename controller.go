@@ -70,6 +70,7 @@ func NewController(kubeclientset kubernetes.Interface, fissionclientset fclients
 		UpdateFunc: func(old, new interface{}) {
 			controller.EnqueuFun(new)
 		},
+		DeleteFunc: controller.EnqueuFun,
 	})
 
 	deploymentInformer.Informer().AddEventHandler(cache.ResourceEventHandlerFuncs{
@@ -166,6 +167,12 @@ func (c *AController) ProcessNextWorkItem() bool {
 	return true
 }
 
+func (c *AController) DeleteDeployment(name string, namespace string) error {
+	klog.Infof("Deleting the deployment %s", name)
+	err := c.kubeclientset.AppsV1().Deployments(namespace).Delete(name, &metav1.DeleteOptions{})
+	return err
+}
+
 func (c *AController) SyncHandler(key string) error {
 	// convert the namespace and name into distinct namespace and name
 	namespace, name, err := cache.SplitMetaNamespaceKey(key)
@@ -179,7 +186,13 @@ func (c *AController) SyncHandler(key string) error {
 	if err != nil {
 		if errors.IsNotFound(err) {
 			// function resource is not found
-			// dont do anything
+			// delete the deployment that was created
+			// by this function
+			err := c.DeleteDeployment(name, namespace)
+			if err != nil {
+				klog.Fatalf("There was an error deleting the deployment %s", err.Error())
+			}
+
 			return nil
 		}
 	}
@@ -218,7 +231,7 @@ func newDeployment(function *functionv1.Function) *appsv1.Deployment {
 		"app":        function.Name,
 		"controller": function.Name,
 	}
-	var noOfRepl int32 = 1
+
 	return &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      function.Name,
@@ -228,7 +241,7 @@ func newDeployment(function *functionv1.Function) *appsv1.Deployment {
 			// },
 		},
 		Spec: appsv1.DeploymentSpec{
-			Replicas: &noOfRepl,
+			Replicas: &function.Spec.Replicas,
 			Selector: &metav1.LabelSelector{
 				MatchLabels: labels,
 			},
@@ -240,7 +253,7 @@ func newDeployment(function *functionv1.Function) *appsv1.Deployment {
 					Containers: []corev1.Container{
 						{
 							Name:  "continername",
-							Image: function.Spec.Message,
+							Image: function.Spec.Image.Name,
 						},
 					},
 				},

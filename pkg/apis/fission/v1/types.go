@@ -10,7 +10,7 @@ type Function struct {
 	metav1.TypeMeta `json:",inline"`
 	// +optional
 	metav1.ObjectMeta `json:"metadata,omitempty"`
-	
+
 	// +optional
 	Status FunctionStatue `json:"status,omitempty"`
 	// This is where you can define
@@ -18,13 +18,19 @@ type Function struct {
 	Spec FunctionSpec `json:"spec,omitempty"`
 }
 
-// custom spec 
+// custom spec
 type FunctionSpec struct {
-	Message string `json:"message,omitempty"`
+	Image ImageStruct `json:"image,omitempty"`
+	//Replicas int32  `json:"replicas"`
+	Replicas int32 `json:"replicas,omitempty"`
+}
+
+type ImageStruct struct {
+	Name string `json:"name"`
 }
 
 // custom status
-type  FunctionStatue  struct {
+type FunctionStatue struct {
 	Name string
 }
 
@@ -38,4 +44,3 @@ type FunctionList struct {
 
 	Items []Function `json:"items"`
 }
-

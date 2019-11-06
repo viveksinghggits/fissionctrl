@@ -3,4 +3,6 @@ kind: Function
 metadata:
   name: functiontwo 
 spec:
-  message: nginx
+  replicas: 3 
+  image: 
+    name: nginx
